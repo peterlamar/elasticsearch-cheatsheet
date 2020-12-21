@@ -4,18 +4,42 @@ Elasticsearch cheatsheet and quickstart study guide
 
 [curl](#curl)
 
+1. [backup index]($backup-index)
+1. [list index mapping](#list-index-mapping)
 1. [delete index](#delete-index)
 1. [list indexes](#list-indexes)
 1. [mapping](#mapping)
 1. [insert](#insert)
 1. [bulk-insert](#bulk-insert)
-1. [update]
-1. [query](#query)
+1. [update](#update)
+1. [delete](#delete)
+1. [search](#search)
+1. [get](#get)
 
 [Misc](#misc)
 1. [docker](#docker)
 
 # curl
+
+## Backup-index
+
+```bash
+curl -XPOST --header 'Content-Type: application/json' http://localhost:9200/_reindex -d '{
+  "source": {
+    "index": "samples"
+  },
+  "dest": {
+    "index": "samples_backup"
+  }
+}'
+```
+
+## List-Index-Mapping
+
+List the fields and their types in an index
+```bash
+curl -X GET http://localhost:9200/samples
+```
 
 ## Delete-Index
 
@@ -108,6 +132,12 @@ Insert record
 }'
 ```
 
+```bash
+curl -XPUT --header 'Content-Type: application/json' http://localhost:9200/samples/_doc/1 -d '{
+   "school" : "Harvard"			
+}'
+```
+
 ## bulk-insert
 
 ```bash
@@ -128,12 +158,35 @@ When you update an existing document, a new document is created with an incremen
 '
 ```
 
-## query
+Insert and Update
+```bash
+curl -XPUT --header 'Content-Type: application/json' http://localhost:9200/samples/_doc/2 -d '
+{
+    "school": "Clemson"
+}'
+curl -XPOST --header 'Content-Type: application/json' http://localhost:9200/samples/_doc/2/_update -d '{
+"doc" : {
+               "students": 50000}
+}'
+```
+
+## delete
+```bash
+curl -XDELETE 127.0.0.1:9200/movies/_doc/58559
+```
+
+## search
 
 Get all movies
 ```bash
 ./curl  -XGET 127.0.0.1:9200/movies/_search\?pretty
 ```
+
+```bash
+./curl  -XGET 127.0.0.1:9200/movies/_search\?q=dark
+```
+
+## Get
 
 Get movie with ID 109487
 ```bash
