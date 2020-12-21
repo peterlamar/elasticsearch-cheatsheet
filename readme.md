@@ -4,15 +4,36 @@ Elasticsearch cheatsheet and quickstart study guide
 
 [curl](#curl)
 
+1. [delete index](#delete-index)
+1. [list indexes](#list-indexes)
 1. [mapping](#mapping)
 1. [insert](#insert)
 1. [bulk-insert](#bulk-insert)
+1. [update]
 1. [query](#query)
 
 [Misc](#misc)
 1. [docker](#docker)
 
 # curl
+
+## Delete-Index
+
+```bash
+curl -X DELETE 'http://localhost:9200/samples'
+```
+
+## List Indexes
+
+```bash
+curl -X GET 'http://localhost:9200/_cat/indices?v'
+```
+
+## List docs in index
+
+```bash
+curl -X GET 'http://localhost:9200/sample/_search'
+```
 
 ## Mapping
 
@@ -93,9 +114,30 @@ Insert record
 ./curl -XPUT 127.0.0.1:9200/_bulk\?pretty --data-binary @movies.json
 ```
 
+## update
+Each document has a _version firle and is immutable
+When you update an existing document, a new document is created with an incremented _version and then the old document is marked for deletion
+
+```
+./curl -XPOST 127.0.0.1:9200/movies/_doc/109487/_update -d '
+{
+    "doc" :{
+    "title":"Interstellarxx"
+    }
+}
+'
+```
+
 ## query
+
+Get all movies
 ```bash
 ./curl  -XGET 127.0.0.1:9200/movies/_search\?pretty
+```
+
+Get movie with ID 109487
+```bash
+./curl  -XGET 127.0.0.1:9200/movies/_doc/109487\?pretty
 ```
 
 # misc
