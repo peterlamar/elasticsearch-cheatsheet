@@ -98,16 +98,32 @@ Index field for full-text search?
 }'
 ```
 
-Define Tokenizer and token filter: standrd/whitespace/simple/english/etc
+Make genre type keyword so its not analyzed (matches other cases, etc)
 ```bash
 ./curl -XPUT 127.0.0.1:9200/movies -d '
 {
     "mappings":{
-        "properties":{
-            "genre":{"index":"not_analyzed"}
+        "properties": {
+            "id": {"type":"date"},
+            "year":{"type":"date"},
+            "genre":{"type":"keyword"},
+            "title":{"type":"text","analyzer":"english"}
         }
     }
-}'
+}
+'
+```
+
+Map film to franchise to make a parent
+```bash
+./curl -XPUT 127.0.0.1:9200/series -d '
+{"mappings":{
+    "properties":{
+        "film_to_franchise":{
+            "type":"join","relations":{
+                "franchise":"film"
+                }}}}
+    }'
 ```
 
 Analyzers:
@@ -185,6 +201,23 @@ Get all movies
 ```bash
 ./curl  -XGET 127.0.0.1:9200/movies/_search\?q=dark
 ```
+
+Match Phrase
+```bash
+./curl -XGET 127.0.0.1:9200/movies/_search\?pretty -d '{"query":{"match_phrase":{"genre":"sci"}}}'
+```
+
+./curl  -XGET 127.0.0.1:9200/series/_search\?pretty -d '
+{"query":{
+    "has_parent":{
+        "parent_type":"franchise",
+        "query":{
+            "match":{
+                "title":"Star Wars"}
+        }
+    }
+}
+}'
 
 ## Get
 
