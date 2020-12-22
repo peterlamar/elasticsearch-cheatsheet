@@ -14,6 +14,8 @@ Elasticsearch cheatsheet and quickstart study guide
 1. [update](#update)
 1. [delete](#delete)
 1. [search](#search)
+1. [filters](#filters)
+1. [query lite search](#query-lite)
 1. [get](#get)
 
 [Misc](#misc)
@@ -193,6 +195,35 @@ curl -XDELETE 127.0.0.1:9200/movies/_doc/58559
 
 ## search
 
+Queries are wrapped in a "query": { } block
+
+Query Types
+* Match all: Returns all documents and is default. Formally used with a filter
+```json
+{"match_all":{}}
+```
+* Match: Searches analyzed results, such as full text search
+```json
+{"match":{"title":"star"}}
+```
+* Multi-match: Run the same query on multiple fields
+```json
+{"multi_match":{"query":"star","fields":["title","synopsis"]}}
+```
+* Bool: Works like a bool filterm but results are scored by relevance
+```bash
+./curl -XGET 127.0.0.1:9200/movies/_search\?pretty -d '
+{
+    "query":{
+        "bool": {
+            "must":{"term":{"title":"trek"}},
+            "filter":{"range":{"year":{"gte":2010}}}
+        }
+    }
+}'
+```
+
+
 Get all movies
 ```bash
 ./curl  -XGET 127.0.0.1:9200/movies/_search\?pretty
@@ -202,11 +233,30 @@ Get all movies
 ./curl  -XGET 127.0.0.1:9200/movies/_search\?q=dark
 ```
 
+Match
+```bash
+./curl -XGET 127.0.0.1:9200/movies/_search\?pretty -d '{"query":{"match":{"title":"star"}}}'
+```
+
+Match Phrase (order and lettering)
+```bash
+./curl -XGET 127.0.0.1:9200/movies/_search\?pretty -d '{"query":{"match_phrase":{"title":"star wars"}}}'
+```
+
 Match Phrase
 ```bash
 ./curl -XGET 127.0.0.1:9200/movies/_search\?pretty -d '{"query":{"match_phrase":{"genre":"sci"}}}'
 ```
 
+Match Phrase with Slop which allows term to move in either direction 
+* enables star beyond to match Star Trek Beyond (also beyond star)
+* enables "quick brown fox" to match "quick fox" with a slop of 1
+* If slop of 100 is specified, then any document with 'star' or 'beyond' within 100 words could be returned, but closer values are returned with higher relevance
+```bash
+./curl -XGET 127.0.0.1:9200/movies/_search\?pretty -d '{"query":{"match_phrase":{"title":{"query":"star beyond", "slop": 1}}}}'
+```
+
+Find films whose parent matches "Star Wars"
 ./curl  -XGET 127.0.0.1:9200/series/_search\?pretty -d '
 {"query":{
     "has_parent":{
@@ -218,6 +268,92 @@ Match Phrase
     }
 }
 }'
+
+Find franchise associated with a film
+```bash
+./curl  -XGET 127.0.0.1:9200/series/_search\?pretty -d '
+{"query":{
+    "has_child":{
+        "type":"film",
+        "query":{
+            "match":{
+                "title":"The Force Awakens"}
+        }
+    }
+}
+}
+'
+```
+## Filter
+
+Filters are wrapped in a "filter": { } block
+
+Types of Filters
+* Term: Filter by exact values
+```json
+{"term":{"year":2014}}
+```
+* Terms: Match if any exact values in a list match
+```json
+{"terms":{"genre":["Sci-Fi","Adventure"]}}
+```
+* Range: Find numbers or dates in a given range (gt, gte, lt, lte)
+```json
+{"range":{"year":{"gte": 2010}}}
+```
+* Exists: Find documents where a field exists
+```json
+{"exists":{"fields":"tags"}}
+```
+* Missing: Find documents where a field is missing
+```json
+{"missing":{"field":"tags"}}
+```
+* Bool: Combine filters with Boolean logic (must, must_not, should)
+
+## Query Lite
+
+Compared to json queries, can be:
+1. Cryptic
+1. Security vulnerabile
+1. Fragile
+
+Get movie with title star
+```bash
+./curl  -XGET '127.0.0.1:9200/movies/_search?q=title:star&pretty=true'
+```
+
+Request body equivalent
+
+```bash
+./curl  -XGET 127.0.0.1:9200/movies/_search\?pretty -d '{
+    "query":{
+        "match":{
+            "title":"star"
+        }
+    }
+}'
+
+```
+
+Released after 2010 with Trek in the title
+```bash
+./curl  -XGET '127.0.0.1:9200/movies/_search?q=+year>2010+title:trek&pretty=true'
+```
+
+Request body equivalent
+```bash
+./curl  -XGET 127.0.0.1:9200/movies/_search\?pretty -d '
+{
+    "query":{
+        "bool":{
+            "must":{"term": {"title":"trek"}},
+            "filter":{"range":{"year":{"gte":2010}}}
+        }
+    }
+}'
+```
+
 
 ## Get
 
