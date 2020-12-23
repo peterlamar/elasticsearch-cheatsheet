@@ -9,6 +9,8 @@ Elasticsearch cheatsheet and quickstart study guide
 1. [Delete index](#delete-index)
 1. [List indexes](#list-indexes)
 1. [Mapping](#mapping)
+1. [Analyzers](#analyzers)
+1. [NGram](#ngram)
 1. [Insert](#insert)
 1. [Bulk-insert](#bulk-insert)
 1. [Update](#update)
@@ -137,7 +139,8 @@ Map film to franchise to make a parent
     }'
 ```
 
-Analyzers:
+## Analyzers
+
 1. Use [standard analyzer](https://www.elastic.co/guide/en/elasticsearch/reference/current/analysis-standard-analyzer.html) if none is specified
 1. Character Filters: Remove HTML encoding, convert & to and
 1. Tokenizer: Split strings on whitespace/punctiation/non-letters
@@ -147,8 +150,31 @@ Analyzers:
 1. Whitespace: Splits on whitespace but doesn't lowercase
 1. Language: Accounts for language-specific stopwords and stemming
 
+Test analyzer
+```bash
+./curl -XGET 127.0.0.1:9200/movies/_analyze\?pretty -d '{
+    "analyzer": "autocomplete",
+    "text": "Sta"
+}'
+```
+
+Specify analyzer
+```bash
+./curl -XGET 127.0.0.1:9200/movies/_search\?pretty -d '{
+    "query":{
+        "match":{
+            "title":{
+                "query":"sta",
+                "analyzer":"standard"
+            }
+        }
+    }
+}'
+```
+
 ## NGram
 
+Custom analyzer 'autocomplete'
 ```bash
 ./curl -XPUT 127.0.0.1:9200/movies -d '{
     "settings":{
@@ -173,6 +199,20 @@ Analyzers:
         }
     }
 }'
+```
+
+Assign analyzer as mapping
+```bash
+./curl -XPUT '127.0.0.1:9200/movies/_mapping?pretty' -d '
+{
+    "properties": {
+        "title":{
+            "type":"text",
+            "analyzer":"autocomplete"
+        }
+    }
+}
+'
 ```
 
 ## insert
@@ -478,4 +518,3 @@ A copy of a field could be made so allow full text search and raw sorting
 ```bash
 docker run -p 9200:9200 -p 9300:9300 -e "discovery.type=single-node" docker.elastic.co/elasticsearch/elasticsearch:7.10.1
 ```
-
