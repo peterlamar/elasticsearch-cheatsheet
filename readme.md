@@ -4,22 +4,31 @@ Elasticsearch cheatsheet and quickstart study guide
 
 [curl](#curl)
 
-1. [backup index]($backup-index)
-1. [list index mapping](#list-index-mapping)
-1. [delete index](#delete-index)
-1. [list indexes](#list-indexes)
-1. [mapping](#mapping)
-1. [insert](#insert)
-1. [bulk-insert](#bulk-insert)
-1. [update](#update)
-1. [delete](#delete)
-1. [search](#search)
-1. [filters](#filters)
-1. [query lite search](#query-lite)
-1. [get](#get)
+1. [Backup index]($backup-index)
+1. [List index mapping](#list-index-mapping)
+1. [Delete index](#delete-index)
+1. [List indexes](#list-indexes)
+1. [Mapping](#mapping)
+1. [Insert](#insert)
+1. [Bulk-insert](#bulk-insert)
+1. [Update](#update)
+1. [Delete](#delete)
+1. [Get](#get)
+
+[Search](#search)
+1. [Match](#match)
+1. [Fuzzy](#fuzzy)
+1. [Prefix](#prefix)
+1. [Wildcard](#wildcard)
+1. [Match Phrase](#match-phrase)
+1. [Match Phrase Prefix](#match-phrase-prefix)
+1. [Filters](#filters)
+1. [Query lite search](#query-lite)
+1. [Pagination](#pagination)
+1. [Sort](#sort)
 
 [Misc](#misc)
-1. [docker](#docker)
+1. [Docker](#docker)
 
 # curl
 
@@ -129,6 +138,7 @@ Map film to franchise to make a parent
 ```
 
 Analyzers:
+1. Use [standard analyzer](https://www.elastic.co/guide/en/elasticsearch/reference/current/analysis-standard-analyzer.html) if none is specified
 1. Character Filters: Remove HTML encoding, convert & to and
 1. Tokenizer: Split strings on whitespace/punctiation/non-letters
 1. Token Filter: Lowercasing, stemming, synonyms, stopwords
@@ -136,6 +146,34 @@ Analyzers:
 1. Simple: Split on anything that isn't a letter, and lowercase
 1. Whitespace: Splits on whitespace but doesn't lowercase
 1. Language: Accounts for language-specific stopwords and stemming
+
+## NGram
+
+```bash
+./curl -XPUT 127.0.0.1:9200/movies -d '{
+    "settings":{
+        "analysis":{
+            "filter":{
+                "autocomplete_filter": {
+                    "type":"edge_ngram",
+                    "min_gram":1,
+                    "max_gram":20
+                }
+            },
+        "analyzer":{
+            "autocomplete":{
+                "type":"custom", 
+                "tokenizer":"standard",
+                "filter": [
+                    "lowercase",
+                    "autocomplete_filter"
+                ]
+                }
+            }
+        }
+    }
+}'
+```
 
 ## insert
 
@@ -193,6 +231,13 @@ curl -XPOST --header 'Content-Type: application/json' http://localhost:9200/samp
 curl -XDELETE 127.0.0.1:9200/movies/_doc/58559
 ```
 
+## Get
+
+Get movie with ID 109487
+```bash
+./curl  -XGET 127.0.0.1:9200/movies/_doc/109487\?pretty
+```
+
 ## search
 
 Queries are wrapped in a "query": { } block
@@ -233,10 +278,33 @@ Get all movies
 ./curl  -XGET 127.0.0.1:9200/movies/_search\?q=dark
 ```
 
-Match
+## Match
+
 ```bash
 ./curl -XGET 127.0.0.1:9200/movies/_search\?pretty -d '{"query":{"match":{"title":"star"}}}'
 ```
+## Fuzzy
+Fuzzy defaults
+* 0 for 1-2 character strings
+* 1 for 3-5 character strings
+* 2 for anything else
+
+Allow 1 character off
+```bash
+./curl -XGET 127.0.0.1:9200/movies/_search\?pretty -d '{"query":{"fuzzy":{"title":{"value":"intersteller","fuzziness":1}}}}'
+```
+
+## Prefix
+```bash
+./curl -XGET 127.0.0.1:9200/movies/_search\?pretty -d '{"query":{"prefix":{"year":"201"}}}'
+```
+
+## Wildcard
+```bash
+./curl -XGET 127.0.0.1:9200/movies/_search\?pretty -d '{"query":{"wildcard":{"year":"1*"}}}'
+```
+
+## Match Phrase
 
 Match Phrase (order and lettering)
 ```bash
@@ -284,6 +352,14 @@ Find franchise associated with a film
 }
 '
 ```
+
+## Match Phrase Prefix
+Can be used to implement autocomplete
+
+```bash
+./curl -XGET 127.0.0.1:9200/movies/_search\?pretty -d '{"query":{"match_phrase_prefix":{"title":{"query":"star"}}}}'
+```
+
 ## Filter
 
 Filters are wrapped in a "filter": { } block
@@ -354,13 +430,46 @@ Request body equivalent
 }'
 ```
 
+## pagination
+* Pagination results are still retrieved, but sorted and o mitted before returning to user
 
-## Get
-
-Get movie with ID 109487
 ```bash
-./curl  -XGET 127.0.0.1:9200/movies/_doc/109487\?pretty
+./curl -XGET '127.0.0.1:9200/movies/_search?size=2&from=2&pretty'
+./curl -XGET 127.0.0.1:9200/movies/_search\?pretty -d '{"from": 2, "size": 2, "query":{"match":{"genre":"Sci-Fi"}}}'
 ```
+
+When from is omitted it starts from 0
+```bash
+./curl -XGET '127.0.0.1:9200/movies/_search?size=2&pretty'
+```
+
+## sort
+* A string field that is analyzed for full text search cannot be used to sort documents since it exists in the inverted index as individual terms
+
+```bash
+./curl -XGET '127.0.0.1:9200/movies/_search?sort=year&pretty'
+```
+
+A copy of a field could be made so allow full text search and raw sorting
+```bash
+./curl -XPUT 127.0.0.1:9200/movies/ -d '{
+    "mappings": {
+        "properties" : {
+            "title": {
+                "type":"text",
+                "fields":{
+                    "raw":{
+                        "type":"keyword"
+                    }
+                }
+            }
+        }
+    }
+}'
+./curl -XGET '127.0.0.1:9200/movies/_search?sort=title.raw&pretty'
+```
+
+* Cannot change mapping on an existing index. Would have to delete it, setup mapping and reindex
 
 # misc
 
