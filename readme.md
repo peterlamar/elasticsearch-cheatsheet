@@ -518,3 +518,7 @@ A copy of a field could be made so allow full text search and raw sorting
 ```bash
 docker run -p 9200:9200 -p 9300:9300 -e "discovery.type=single-node" docker.elastic.co/elasticsearch/elasticsearch:7.10.1
 ```
+
+# Reference
+
+[Content](https://learning.oreilly.com/api/v1/continue/9781788995122/) from OReilly course
