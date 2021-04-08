@@ -16,7 +16,7 @@ Elasticsearch cheatsheet and quickstart study guide
 1. [Update](#update)
 1. [Delete](#delete)
 1. [Get](#get)
-1. [Cluster Status](#status)
+1. [Cluster Status](#cluster-status)
 
 [Search](#search)
 1. [Match](#match)
