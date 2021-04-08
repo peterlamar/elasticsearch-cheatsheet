@@ -16,6 +16,7 @@ Elasticsearch cheatsheet and quickstart study guide
 1. [Update](#update)
 1. [Delete](#delete)
 1. [Get](#get)
+1. [Cluster Status](#status)
 
 [Search](#search)
 1. [Match](#match)
@@ -276,6 +277,12 @@ curl -XDELETE 127.0.0.1:9200/movies/_doc/58559
 Get movie with ID 109487
 ```bash
 ./curl  -XGET 127.0.0.1:9200/movies/_doc/109487\?pretty
+```
+
+## Cluster Status
+
+```
+./curl  -XGET 192.168.86.23:9200/_cluster/stats\?pretty
 ```
 
 ## search
