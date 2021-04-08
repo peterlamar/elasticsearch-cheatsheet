@@ -17,6 +17,7 @@ Elasticsearch cheatsheet and quickstart study guide
 1. [Delete](#delete)
 1. [Get](#get)
 1. [Cluster Status](#cluster-status)
+1. [List Masters](#list-masters)
 
 [Search](#search)
 1. [Match](#match)
@@ -283,6 +284,12 @@ Get movie with ID 109487
 
 ```
 ./curl  -XGET 192.168.86.23:9200/_cluster/stats\?pretty
+```
+
+## List Masters
+
+```
+./curl  -XGET "192.168.86.23:9200/_cat/master?v=true&pretty"
 ```
 
 ## search
