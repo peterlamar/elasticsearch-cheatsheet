@@ -126,6 +126,19 @@ There are two types of shards, primaries and replicas and each document belongs 
 
 The number of primary shards in an index is fixed at index creation time but replicas can be changed at any time
 
+Performance considerations:
+1. More shards involves more maintenence overhead
+2. Larger shards mean longer cluster rebalance times
+3. Querying small shards makes processing per shard faster
+4. More queries involves more overhead, so a smaller number of large shards maybe faster
+
+Advice:
+1. Recommended shard size 1GB < x < 40GB, with common sizes 20GB < x < 40GB
+2. Number of shards per GB of heap space should be less than 20
+
+Performance Experiments
+1. [Elastic cluster sizing](https://www.elastic.co/elasticon/conf/2016/sf/quantitative-cluster-sizing)
+
 # curl
 
 ## Backup-index
