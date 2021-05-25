@@ -2,9 +2,15 @@
 
 Elasticsearch cheatsheet and quickstart study guide
 
+[Concepts](#concepts)
+
+1. [Documents](#documents)
+1. [Indices](#indices)
+
+
 [curl](#curl)
 
-1. [Backup index]($backup-index)
+1. [Backup index](#backup-index)
 1. [List index mapping](#list-index-mapping)
 1. [Delete index](#delete-index)
 1. [List indexes](#list-indexes)
@@ -20,6 +26,7 @@ Elasticsearch cheatsheet and quickstart study guide
 1. [List Masters](#list-masters)
 
 [Search](#search)
+
 1. [Match](#match)
 1. [Fuzzy](#fuzzy)
 1. [Prefix](#prefix)
@@ -33,6 +40,36 @@ Elasticsearch cheatsheet and quickstart study guide
 
 [Misc](#misc)
 1. [Docker](#docker)
+
+# concepts
+
+## Documents
+
+Things you are searching for, can be any text but typically json. Each document has a unique ID and type. A document is kind of like a row in a database. 
+
+## Indices
+
+Also called an inverted index, basically the lookup table in the back of a book
+
+```
+Document 1:
+
+Space: The final frontier. These are the voyages
+
+Document 2:
+
+He's bad, he's number one. He's the space cowboy with the laser gun!
+
+Inverted index
+
+space:    1,2
+the:      1,2
+final:    1
+frontier: 1
+he:       2
+bad:      2
+```
+
 
 # curl
 
