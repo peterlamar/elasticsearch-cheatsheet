@@ -6,6 +6,8 @@ Elasticsearch cheatsheet and quickstart study guide
 
 1. [Documents](#documents)
 1. [Indices](#indices)
+2. [Nodes](#nodes)
+3. [Shards](#shards)
 
 
 [curl](#curl)
@@ -45,7 +47,36 @@ Elasticsearch cheatsheet and quickstart study guide
 
 ## Documents
 
-Things you are searching for, can be any text but typically json. Each document has a unique ID and type. A document is kind of like a row in a database. 
+Things you are searching for, can be any text but typically json. Each document has a unique ID, version and type. A document is kind of like a row in a database. 
+
+Example:
+
+```
+{
+  "name": "Elastic",
+  "location": "somewhere",
+  "data": [1,2]
+}
+```
+
+Example response after posting to ES index:
+
+```
+{
+  "_index": "myindex",
+  "_type": "_doc",
+  "_id": "ndskdf239dkD",
+  "_version": 1,
+  "result": "created:,
+  "_shards": {
+    "total": 2,
+    "successful": 1,
+    "failed": 0
+  }
+  "_seq_no": 21,
+  "_primary_term" : 1
+}
+```
 
 ## Indices
 
@@ -70,6 +101,30 @@ he:       2
 bad:      2
 ```
 
+Indexes can be created for you or you can create them manually. 
+
+Example index create
+```
+PUT /inspections
+{
+  "settings": {
+    "index.number_of_shards": 1,
+    "index.number_of_replicas": 0
+  }
+}
+```
+
+## Nodes
+
+Nodes are servers added to a cluster to increase capacity
+
+## Shards
+
+Shards are self-contained indexes. Documents in an index can be distributed across multiple shards. Shards can be distributed across multiple nodes. As cluster grows or shrinks Elasticsearch migrates shards to rebalance cluster
+
+There are two types of shards, primaries and replicas and each document belongs to a primary shard
+
+The number of primary shards in an index is fixed at index creation time but replicas can be changed at any time
 
 # curl
 
