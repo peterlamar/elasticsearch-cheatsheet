@@ -6,8 +6,9 @@ Elasticsearch cheatsheet and quickstart study guide
 
 1. [Documents](#documents)
 1. [Indices](#indices)
-2. [Nodes](#nodes)
-3. [Shards](#shards)
+1. [Nodes](#nodes)
+1. [Shards](#shards)
+1. [Use Cases](#use-cases)
 
 
 [curl](#curl)
@@ -152,6 +153,14 @@ Advice:
 
 Performance Experiments
 1. [Elastic cluster sizing](https://www.elastic.co/elasticon/conf/2016/sf/quantitative-cluster-sizing)
+
+## Use-Cases
+
+1. Logstash - Accumilating daily indices, incurring small search loads
+
+If left with the default of 5 primary shards for every index (double if to include the default replica), then after six months there could be 5 x 30 x 6 = 890 shards which would require > 15 nodes (Roughly 60 primary shards per node or approx 15 shards for each GB of heap space assumed to be 4 for primary shards and 4 for the replicas)
+
+A custom setting of 1 shard per node with a single replica will be 180 shards in six months which is more managable
 
 # curl
 
@@ -533,7 +542,7 @@ Can be used to implement autocomplete
 ./curl -XGET 127.0.0.1:9200/movies/_search\?pretty -d '{"query":{"match_phrase_prefix":{"title":{"query":"star"}}}}'
 ```
 
-## Filter
+## Filters
 
 Filters are wrapped in a "filter": { } block
 
