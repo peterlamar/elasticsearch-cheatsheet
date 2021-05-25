@@ -114,27 +114,40 @@ PUT /inspections
 }
 ```
 
+Each index has a "number_of_shards" value to pertains to that index. Five primary shards and one replica created by default for each index.
+
 ## Nodes
 
 Nodes are servers added to a cluster to increase capacity
 
 ## Shards
 
-Shards are self-contained indexes. Documents in an index can be distributed across multiple shards. Shards can be distributed across multiple nodes. As cluster grows or shrinks Elasticsearch migrates shards to rebalance cluster
+Shards are self-contained Lucene indexes. Documents in an index can be distributed across multiple shards (10 documents per shard for example). Shards can be distributed across multiple nodes. As cluster grows or shrinks Elasticsearch migrates shards to rebalance cluster
 
-There are two types of shards, primaries and replicas and each document belongs to a primary shard
+There are two types of shards, primaries and replicas and each document belongs to a primary shard. Only the primary shard can accept indexing requests but both can [accept query requests](https://www.youtube.com/watch?v=aG6WPu08qBs). 
 
-The number of primary shards in an index is fixed at index creation time but replicas can be changed at any time
+The number of primary shards in an index is fixed at index creation time but replicas can be changed at any time. Number of shards can be considered similar to disk partition. 
+
+Shards are allocated based on dataset growth expectations. 
+
+Each shard:
+1. Consumes file handles, memory and CPU resources
+1. Each search request touches a copy of every shard
+1. Problems can happen when shards compete for the same hardware resource
+1. More shards has lower document [relevance](https://www.elastic.co/blog/practical-bm25-part-1-how-shards-affect-relevance-scoring-in-elasticsearch)
 
 Performance considerations:
 1. More shards involves more maintenence overhead
-2. Larger shards mean longer cluster rebalance times
-3. Querying small shards makes processing per shard faster
-4. More queries involves more overhead, so a smaller number of large shards maybe faster
+1. Larger shards mean longer cluster rebalance times
+1. Querying small shards makes processing per shard faster
+1. More queries involves more overhead, so a smaller number of large shards maybe faster
 
 Advice:
-1. Recommended shard size 1GB < x < 40GB, with common sizes 20GB < x < 40GB
-2. Number of shards per GB of heap space should be less than 20
+1. Ideal scenario is one shard per index per node
+1. Starting point for cluster planning, allocate shards with a factor of 1.5 to 3 times the number of nodes in the initial configuration. So if starting with 3 nodes then max 9 shards
+1. Recommended shard size 1GB < x < 40GB, with common sizes 20GB < x < 40GB. Divide expected data size by number of shards to reach reasonable number. For example, 200GB of data then have 7 shards at approx 30GB each
+1. Number of shards per GB of heap space should be less than 20
+1. Max JVM Heap Size recommendation for Elasticsearch = 30-32GB
 
 Performance Experiments
 1. [Elastic cluster sizing](https://www.elastic.co/elasticon/conf/2016/sf/quantitative-cluster-sizing)
