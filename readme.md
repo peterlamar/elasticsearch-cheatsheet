@@ -137,10 +137,11 @@ Each shard:
 1. More shards has lower document [relevance](https://www.elastic.co/blog/practical-bm25-part-1-how-shards-affect-relevance-scoring-in-elasticsearch)
 
 Performance considerations:
+1. Queries are sent to each shard simultaneuously and then the results are aggregated. More I/O headroom and multicore processor can benefit from sharding. 
 1. More shards involves more maintenence overhead
 1. Larger shards mean longer cluster rebalance times
 1. Querying small shards makes processing per shard faster
-1. More queries involves more overhead, so a smaller number of large shards maybe faster
+1. More queries involves more overhead, so a smaller number of large shards maybe faster.
 
 Advice:
 1. Ideal scenario is one shard per index per node
